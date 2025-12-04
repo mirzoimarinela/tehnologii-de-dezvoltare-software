@@ -1,0 +1,34 @@
+name: Deploy to IIS
+
+# Trigger: Workflow-ul pornește doar când facem push pe ramura main
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy-job:
+    # Aici specificăm ca job-ul să ruleze pe serverul nostru, nu pe serverele GitHub
+    runs-on: self-hosted
+
+    steps:
+      # Pasul 1: Runner-ul descarcă codul din GitHub pe server
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Pasul 2: Scriptul efectiv de deploy (PowerShell)
+      - name: Copy files to IIS folder
+        run: |
+          # Definim calea sursă (unde a descărcat runner-ul codul)
+          $source = "."
+          
+          # Definim calea destinație (folderul IIS)
+          $dest = "C:\inetpub\wwwroot"
+
+          # Mesaj de log
+          Write-Host "Deploying from $source to $dest"
+
+          # Copiem fișierul html, suprascriind ce exista
+          # Excludem folderul .git și fișierele workflow
+          Copy-Item -Path "$source\*" -Destination $dest -Recurse -Force -Exclude ".git",".github"
+
+          Write-Host "Deploy terminat cu succes!"
